@@ -17,7 +17,7 @@ class StuCommand(sublime_plugin.TextCommand):
         def transform_string(transform):
             textLen = len(transform)
             neededDash = (78 - textLen) / 2
-            return '# ' + transform + ' ' + " ".join("-"*int(neededDash))
+            return '# ' + transform + ' ' + " ".join("-"*int(neededDash) + '\n')
 
         for region in self.view.sel():
             if not region.empty():
@@ -26,6 +26,7 @@ class StuCommand(sublime_plugin.TextCommand):
                 transf = transform_string(s)
                 # Replace the selection with transformed text
                 self.view.replace(edit, region, transf)
+                self.view.sel().clear()
             if region.empty():
                 window = self.view.window()
                 window.show_input_panel("Text to Insert:", "", on_done, on_change, on_cancel)
