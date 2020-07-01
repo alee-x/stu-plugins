@@ -27,6 +27,9 @@ class StuCommand(sublime_plugin.TextCommand):
                 # Replace the selection with transformed text
                 self.view.replace(edit, region, transf)
                 self.view.sel().clear()
+
+                (row,col) = self.view.rowcol(region.end())
+                self.view.run_command("goto_line", {"line": row+2})
             if region.empty():
                 window = self.view.window()
                 window.show_input_panel("Text to Insert:", "", on_done, on_change, on_cancel)
