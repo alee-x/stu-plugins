@@ -5,7 +5,7 @@ class StuCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         def on_done(input_string):
             #self.view.run_command("move_to", {"to": "bof"})
-            transf = transform_string(input_string)
+            transf = transform_string(input_string.strip())
             self.view.run_command("insert", {"characters": transf})
 
         def on_change(input_string):
@@ -23,12 +23,14 @@ class StuCommand(sublime_plugin.TextCommand):
             if not region.empty():
                 # Get the selected text
                 s = self.view.substr(region)
+                s = s.strip()
                 transf = transform_string(s)
                 # Replace the selection with transformed text
                 self.view.replace(edit, region, transf)
                 self.view.sel().clear()
 
                 (row,col) = self.view.rowcol(region.end())
+                print(row)
                 self.view.run_command("goto_line", {"line": row+2})
             if region.empty():
                 window = self.view.window()
