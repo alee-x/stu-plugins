@@ -5,7 +5,7 @@ class BulkCommand(sublime_plugin.TextCommand):
         def transform_string(transform):
             textLen = len(transform)
             neededDash = (80 - textLen) / 2
-            return transform + ' ' + " ".join("-"*int(neededDash) + '\n')
+            return transform + ' ' + " ".join("-"*int(neededDash))
 
         for region in self.view.sel():
             for lin in self.view.lines(region):
