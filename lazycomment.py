@@ -28,4 +28,4 @@ class StuCommand(sublime_plugin.TextCommand):
                 self.view.replace(edit, region, transf)
             if region.empty():
                 window = self.view.window()
-                window.show_input_panel("Text to Insert:", "Hello, World!", on_done, on_change, on_cancel)
+                window.show_input_panel("Text to Insert:", "", on_done, on_change, on_cancel)
