@@ -1,37 +1,65 @@
-import sublime, sublime_plugin
+import re
+import sublime
+import sublime_plugin
 
-# Extends TextCommand so that run() receives a View to modify.
-class StuCommand(sublime_plugin.TextCommand):
+
+class commentSectionCommand(sublime_plugin.TextCommand):
+    def on_done(self, input_string):
+        # self.view.run_command("move_to", {"to": "bof"})
+        transf = self.transform_string(input_string.strip())
+        self.view.run_command("insert", {"characters": transf})
+
+    def on_change(self, input_string):
+        print("Input changed: %s" % input_string)
+
+    def on_cancel():
+        print("User cancelled the input")
+
+    def transform_string(self, txt):
+        txt = re.sub(r"^[# ]+", "", txt)
+        txt = re.sub(r"[ \-=]+$", "", txt)
+        txtLen = len(txt)
+        neededDash = 77 - txtLen
+        txt = "# " + txt + " " + "-" * int(neededDash) + "\n"
+        return txt
+
     def run(self, edit):
-        def on_done(input_string):
-            #self.view.run_command("move_to", {"to": "bof"})
-            transf = transform_string(input_string.strip())
-            self.view.run_command("insert", {"characters": transf})
+        region = self.view.sel()[0]
+        line = self.view.line(region)
+        if not region.empty():
+            # get text of region as a string
+            s = self.view.substr(region)
+            transf = self.transform_string(s)
+            self.view.replace(edit, region, transf)
+            # job done, jog on
+            self.view.sel().clear()
+            (row, col) = self.view.rowcol(region.end())
+            self.view.run_command("goto_line", {"line": row + 2})
+        elif not line.empty():  # expand selection to line
+            # get text of line as a string
+            s = self.view.substr(line)
+            # transform text and replace
+            transf = self.transform_string(s)
+            self.view.replace(edit, line, transf)
+            # job done, jog on
+            (row, col) = self.view.rowcol(region.end())
+            self.view.run_command("goto_line", {"line": row + 2})
+        else:
+            window = self.view.window()
+            window.show_input_panel(
+                "Text to Insert:", "", self.on_done, self.on_change, self.on_cancel
+            )
 
-        def on_change(input_string):
-            print("Input changed: %s" % input_string)
 
-        def on_cancel():
-            print("User cancelled the input")
-
-        def transform_string(transform):
-            textLen = len(transform)
-            neededDash = (78 - textLen) / 2
-            return '# ' + transform + ' ' + " ".join("-"*int(neededDash) + '\n')
-
-        for region in self.view.sel():
-            if not region.empty():
-                # Get the selected text
-                s = self.view.substr(region)
-                s = s.strip()
-                transf = transform_string(s)
-                # Replace the selection with transformed text
-                self.view.replace(edit, region, transf)
-                self.view.sel().clear()
-
-                (row,col) = self.view.rowcol(region.end())
-                print(row)
-                self.view.run_command("goto_line", {"line": row+2})
-            if region.empty():
-                window = self.view.window()
-                window.show_input_panel("Text to Insert:", "", on_done, on_change, on_cancel)
+class commentSubsectionCommand(commentSectionCommand):
+    def transform_string(self, txt):
+        txt = re.sub(r"^[# ]+", "", txt)
+        txt = re.sub(r"[ \-=]+$", "", txt)
+        txtLen = len(txt)
+        neededDash = (78 - txtLen) / 2
+        if len(txt) % 2 == 1:
+            txt = "# " + txt + " " + " -" * int(neededDash) + "\n"
+        else:
+            txt = "# " + txt + " " + "- " * int(neededDash) + "\n"
+        txt = txt[:80]
+        return txt
